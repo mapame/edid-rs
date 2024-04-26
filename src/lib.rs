@@ -103,6 +103,11 @@ impl<'a> Reader<'a> {
     fn read_u32(&mut self) -> Result<u32> {
         Ok((self.read_u16()? as u32) | ((self.read_u16()? as u32) << 16))
     }
+
+    // Big-endian version of `read_u16`
+    fn read_u16_be(&mut self) -> Result<u16> {
+        Ok((self.read_u8()? as u16) << 8 | ((self.read_u8()? as u16)))
+    }
 }
 
 /// The EDID information block.
@@ -182,8 +187,8 @@ pub struct ManufacturerID(pub char, pub char, pub char);
 impl ManufacturerID {
     fn parse(r: &mut Reader) -> Result<ManufacturerID> {
         // The manufacturer ID is stored as three 5-bit
-        // characters in a 16-bit little endian field.
-        let k = r.read_u16()?;
+        // characters in a 16-bit big-endian field.
+        let k = r.read_u16_be()?;
         let c1 = ((k & 0b0111110000000000) >> 10) as u8;
         let c2 = ((k & 0b0000001111100000) >> 05) as u8;
         let c3 = ((k & 0b0000000000011111) >> 00) as u8;
